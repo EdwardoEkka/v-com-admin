@@ -20,6 +20,6 @@ export interface Stock{
 
 export interface Category{
     category: string;  
-    subCategory?: string[];
+    subCategory?: string;
     tags?: string[];   
 }

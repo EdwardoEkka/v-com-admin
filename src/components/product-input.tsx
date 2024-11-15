@@ -12,10 +12,12 @@ import {
   Stack,
   Box,
   Modal,
-  Typography
+  Typography,
+  InputLabel,
 } from "@mui/material";
-import CancelIcon from '@mui/icons-material/Cancel';
+import CancelIcon from "@mui/icons-material/Cancel";
 import { Product } from "../types";
+import Categories from "../data/categories";
 
 const AdminProductForm: React.FC = () => {
   const [product, setProduct] = useState<Product>({
@@ -24,7 +26,7 @@ const AdminProductForm: React.FC = () => {
     images: [],
     price: { price: 0, currency: "USD" },
     stock: { stock: 0, stockStatus: "in stock" },
-    category: { category: "", subCategory: [], tags: [] },
+    category: { category: "", subCategory: "", tags: [] },
   });
   const [imageUrl, setImageUrl] = useState("");
 
@@ -89,7 +91,7 @@ const AdminProductForm: React.FC = () => {
       images: [],
       price: { price: 0, currency: "USD" },
       stock: { stock: 0, stockStatus: "in stock" },
-      category: { category: "", subCategory: [], tags: [] },
+      category: { category: "", subCategory: "", tags: [] },
     });
   };
 
@@ -99,7 +101,6 @@ const AdminProductForm: React.FC = () => {
       images: prevProduct.images.filter((image) => image !== imgUrl),
     }));
   };
-  
 
   return (
     <Container
@@ -145,8 +146,11 @@ const AdminProductForm: React.FC = () => {
             <Button onClick={handleAddImage} variant="outlined" sx={{ mb: 2 }}>
               Add Image
             </Button>
-            <Stack direction="row" >
-              <ImagePagination product={product} removeImage={handleRemoveImage}/>
+            <Stack direction="row">
+              <ImagePagination
+                product={product}
+                removeImage={handleRemoveImage}
+              />
             </Stack>
           </Stack>
           <Stack flexGrow={1} width="50%">
@@ -206,40 +210,63 @@ const AdminProductForm: React.FC = () => {
                 </Select>
               </FormControl>
             </Stack>
-            <TextField
-              label="Category"
-              name="category"
-              value={product.category.category}
-              onChange={(e) =>
-                setProduct((prevProduct) => ({
-                  ...prevProduct,
-                  category: {
-                    ...prevProduct.category,
-                    category: e.target.value,
-                  },
-                }))
-              }
-              fullWidth
-              margin="normal"
-            />
-            <TextField
-              label="Subcategories (comma-separated)"
-              name="subCategory"
-              value={product.category.subCategory?.join(", ") || ""}
-              onChange={(e) =>
-                setProduct((prevProduct) => ({
-                  ...prevProduct,
-                  category: {
-                    ...prevProduct.category,
-                    subCategory: e.target.value
-                      .split(",")
-                      .map((tag) => tag.trim()),
-                  },
-                }))
-              }
-              fullWidth
-              margin="normal"
-            />
+            <FormControl fullWidth margin="normal">
+              <InputLabel id="category-label">Category</InputLabel>
+              <Select
+                labelId="category-label"
+                label="Category"
+                name="category"
+                value={product.category.category}
+                onChange={(e) =>
+                  setProduct((prevProduct) => ({
+                    ...prevProduct,
+                    category: {
+                      ...prevProduct.category,
+                      category: e.target.value,
+                    },
+                  }))
+                }
+              >
+                {Categories.map((category) => (
+                  <MenuItem key={category.cat} value={category.cat}>
+                    {category.cat.charAt(0).toUpperCase() +
+                      category.cat.slice(1)}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            <FormControl fullWidth margin="normal">
+              <InputLabel id="sub-category-label">Sub Category</InputLabel>
+              <Select
+                labelId="sub-category-label"
+                label="Sub Category"
+                name="sub-category"
+                value={product.category.subCategory}
+                onChange={(e) =>
+                  setProduct((prevProduct) => ({
+                    ...prevProduct,
+                    category: {
+                      ...prevProduct.category,
+                      subCategory: e.target.value,
+                    },
+                  }))
+                }
+              >
+                {product.category.category ? (
+                  Categories.find(
+                    (item) => item.cat === product.category.category
+                  )?.sub?.map((subcat) => (
+                    <MenuItem key={subcat} value={subcat}>
+                      {subcat.charAt(0).toUpperCase() + subcat.slice(1)}
+                    </MenuItem>
+                  ))
+                ) : (
+                  <MenuItem key="Select" value={""}>
+                    Select a category first
+                  </MenuItem>
+                )}
+              </Select>
+            </FormControl>
             <TextField
               label="Tags (comma-separated)"
               name="tags"
@@ -277,7 +304,7 @@ export default AdminProductForm;
 interface ImageComponentProps {
   url: string;
   index: number;
-  removeImage: (url:string) => void;
+  removeImage: (url: string) => void;
 }
 
 const ImageComponent = ({ url, index, removeImage }: ImageComponentProps) => {
@@ -286,20 +313,36 @@ const ImageComponent = ({ url, index, removeImage }: ImageComponentProps) => {
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
 
-  const RemoveImageFunc=()=>{
-    removeImage(url)
-  }
+  const RemoveImageFunc = () => {
+    removeImage(url);
+  };
 
   return (
     <>
-      <Box onClick={handleOpen} sx={{ cursor: 'pointer', display: 'inline-block', position:"relative" }}>
+      <Box
+        onClick={handleOpen}
+        sx={{
+          cursor: "pointer",
+          display: "inline-block",
+          position: "relative",
+        }}
+      >
         <CardMedia
           component="img"
           image={url}
           alt={`img-${index}`}
-          sx={{ borderRadius: '8px', objectFit: "cover", height: "70px", width: "70px", border: "1px solid gray" }}
+          sx={{
+            borderRadius: "8px",
+            objectFit: "cover",
+            height: "70px",
+            width: "70px",
+            border: "1px solid gray",
+          }}
         />
-       <CancelIcon sx={{position:"absolute", top:"-10px", right:"-10px"}} onClick={RemoveImageFunc}/>
+        <CancelIcon
+          sx={{ position: "absolute", top: "-10px", right: "-10px" }}
+          onClick={RemoveImageFunc}
+        />
       </Box>
 
       <Modal
@@ -310,24 +353,24 @@ const ImageComponent = ({ url, index, removeImage }: ImageComponentProps) => {
       >
         <Box
           sx={{
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            bgcolor: 'background.paper',
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            bgcolor: "background.paper",
             boxShadow: 24,
             p: 2,
-            borderRadius: '8px',
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
+            borderRadius: "8px",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
           }}
         >
           <CardMedia
             component="img"
             image={url}
             alt={`img-${index}-modal`}
-            sx={{ maxWidth: '90vw', maxHeight: '90vh', objectFit: "contain" }}
+            sx={{ maxWidth: "90vw", maxHeight: "90vh", objectFit: "contain" }}
           />
         </Box>
       </Modal>
@@ -335,7 +378,13 @@ const ImageComponent = ({ url, index, removeImage }: ImageComponentProps) => {
   );
 };
 
-const ImagePagination=({product, removeImage}:{product:Product, removeImage: (url:string) => void})=>{
+const ImagePagination = ({
+  product,
+  removeImage,
+}: {
+  product: Product;
+  removeImage: (url: string) => void;
+}) => {
   const imagesPerPage = 6;
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -349,41 +398,57 @@ const ImagePagination=({product, removeImage}:{product:Product, removeImage: (ur
 
   const handleNext = () => {
     if (currentPage < totalPages) {
-      setCurrentPage(prevPage => prevPage + 1);
+      setCurrentPage((prevPage) => prevPage + 1);
     }
   };
 
   const handlePrev = () => {
     if (currentPage > 1) {
-      setCurrentPage(prevPage => prevPage - 1);
+      setCurrentPage((prevPage) => prevPage - 1);
     }
   };
 
-  const RemoveImageFunc=(value:string)=>{
-  removeImage(value)
-  }
+  const RemoveImageFunc = (value: string) => {
+    removeImage(value);
+  };
 
   return (
     <Box width="100%">
-      <Stack direction="row" justifyContent={currentImages.length >= 6 ? "space-between" : "flex-start"} gap={currentImages.length >= 6 ? "0px" : "16px"}>
+      <Stack
+        direction="row"
+        justifyContent={
+          currentImages.length >= 6 ? "space-between" : "flex-start"
+        }
+        gap={currentImages.length >= 6 ? "0px" : "16px"}
+      >
         {currentImages.map((url: string, index: number) => (
-          <ImageComponent key={index} url={url} index={index} removeImage={RemoveImageFunc}/>
+          <ImageComponent
+            key={index}
+            url={url}
+            index={index}
+            removeImage={RemoveImageFunc}
+          />
         ))}
       </Stack>
-      {
-      currentImages.length>0 &&
-      <Box display="flex" justifyContent="center" alignItems="center" mt={2} width="100%">
-        <Button onClick={handlePrev} disabled={currentPage === 1}>
-          Previous
-        </Button>
-        <Typography variant="body1" mx={2}>
-          {`Page ${currentPage} of ${totalPages}`}
-        </Typography>
-        <Button onClick={handleNext} disabled={currentPage === totalPages}>
-          Next
-        </Button>
-      </Box>
-      }
+      {currentImages.length > 0 && (
+        <Box
+          display="flex"
+          justifyContent="center"
+          alignItems="center"
+          mt={2}
+          width="100%"
+        >
+          <Button onClick={handlePrev} disabled={currentPage === 1}>
+            Previous
+          </Button>
+          <Typography variant="body1" mx={2}>
+            {`Page ${currentPage} of ${totalPages}`}
+          </Typography>
+          <Button onClick={handleNext} disabled={currentPage === totalPages}>
+            Next
+          </Button>
+        </Box>
+      )}
     </Box>
   );
-}
+};
